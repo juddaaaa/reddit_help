@@ -15,7 +15,7 @@ function exerciseArrayRows({range, value}) {
   const targetSheets = [1765965136] // Function will ony run if sheets with these Ids are edited
   const targetSheetId = range.getSheet().getSheetId() // Get the edited sheet's Id
 
-  if (!targetSheets.includes(targetSheetId)) return // Exit function if edited sheet's Id is not in array
+  if (!targetSheets.includes(targetSheetId) || range.rowStart !== range.rowEnd) return // Exit function if edited sheet's Id is not in array or the range size is greater than 1
 
   const targetSheet = range.getSheet() // Get the edited sheet
   const row = range.getRow() // Get the edited row
@@ -33,19 +33,31 @@ function exerciseArrayRows({range, value}) {
   } else if (targetColumns.includes(column) && row >= 3) {
     // If any of the target columns was edited
     const lastRow = targetSheet.getLastRow() // Get last row of sheet
-    const nextCategory = targetSheet.getRange(2, column + 1).getValue() // Get the category from row 2 of the column next to the edited column
-    const nextCategoryRow = targetSheet
+    const editedCategory = targetSheet.getRange(2, column).getValue() // Get the category where the edit was made
+    const nextCategory = targetSheet.getRange(2, column + 1).getValue() // Get the adjacent category
+    const rowAbove = targetSheet.getRange(row - 1, column).getValue() // Get the value of the row above the edited cell
+    const lookupStart = targetSheet
       .getRange(2, 3, lastRow - 1, 1)
-      .createTextFinder(nextCategory || "foobar")
+      .createTextFinder(editedCategory)
       .findNext()
-      ?.getRow() // Get the row in column C that matches the next category value (if found)
+      ?.getRow() // Get the start row of lookup in column C
 
-    const targetRow = nextCategoryRow ? nextCategoryRow - 1 : null // Set the target row to insert or delete cells
+    const lookupEnd = targetSheet
+      .getRange(2, 3, lastRow - 1, 1)
+      .createTextFinder(nextCategory)
+      .findNext()
+      ?.getRow() // Get the end row of lookup in column C
 
-    if (value) {
-      targetSheet.getRange(targetRow ? targetRow : lastRow, 4, 1, 6).insertCells(SpreadsheetApp.Dimension.ROWS) // Insert cells if edited cell is not blank
-    } else {
-      targetSheet.getRange(targetRow ? targetRow + 1 : lastRow, 4, 1, 6).deleteCells(SpreadsheetApp.Dimension.ROWS) // Delete cells if edited cell is blank
+    if (lookupStart && lookupEnd) {
+      const numRows = lookupEnd - lookupStart // Number of rows in lookup
+      const targetRow = targetSheet.getRange(lookupStart, 3, numRows, 1).createTextFinder(rowAbove).findNext()?.getRow() // Get row of lookup value (if found)
+      if (targetRow) {
+        if (value) {
+          targetSheet.getRange(targetRow + 1, 4, 1, 6).insertCells(SpreadsheetApp.Dimension.ROWS) // Insert cells if edited cell is not blank
+        } else {
+          targetSheet.getRange(targetRow + 1, 4, 1, 6).deleteCells(SpreadsheetApp.Dimension.ROWS) // Delete cells if edited cell is blank
+        }
+      }
     }
   }
 }
