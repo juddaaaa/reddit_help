@@ -20,21 +20,13 @@ function exerciseArrayRows({range, value}) {
   const targetSheet = range.getSheet() // Get the edited sheet
   const row = range.getRow() // Get the edited row
   const column = range.getColumn() // Get the edited column
-  const targetColumns = [14, 15, 16, 18, 19, 20, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33] // Target columns
+  const targetColumns = [11, 14, 15, 16, 18, 19, 20, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33] // Target columns
 
-  if (column === 11 && row >= 3) {
-    // If column K was edited
-    if (value) {
-      targetSheet.getRange(row, 4, 1, 6).insertCells(SpreadsheetApp.Dimension.ROWS) // Insert cells if edited cell is not blank
-    } else {
-      // If one of the target columns was edited
-      targetSheet.getRange(row, 4, 1, 6).deleteCells(SpreadsheetApp.Dimension.ROWS) // Delete cells if edited cell is blank
-    }
-  } else if (targetColumns.includes(column) && row >= 3) {
+  if (targetColumns.includes(column) && row >= 3) {
     // If any of the target columns was edited
     const lastRow = targetSheet.getLastRow() // Get last row of sheet
     const editedCategory = targetSheet.getRange(2, column).getValue() // Get the category where the edit was made
-    const nextCategory = targetSheet.getRange(2, column + 1).getValue() // Get the adjacent category
+    const nextCategory = targetSheet.getRange(2, column === 11 ? column + 2 : column + 1).getValue() // Get the adjacent category
     const rowAbove = targetSheet.getRange(row - 1, column).getValue() // Get the value of the row above the edited cell
     const lookupStart = targetSheet
       .getRange(2, 3, lastRow - 1, 1)
