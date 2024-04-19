@@ -42,7 +42,7 @@ function exerciseArrayRows({range, value}) {
 
     if (lookupStart && lookupEnd) {
       const numRows = lookupEnd - lookupStart // Number of rows in lookup
-      const targetRow = targetSheet.getRange(lookupStart, 3, numRows, 1).createTextFinder(rowAbove).findNext()?.getRow() // Get row of lookup value (if found)
+      const targetRow = targetSheet.getRange(lookupStart, 3, numRows, 1).createTextFinder(rowAbove).matchEntireCell(true).findNext()?.getRow() // Get row of lookup value (if found)
       if (targetRow) {
         if (value) {
           targetSheet.getRange(targetRow + 1, 4, 1, 6).insertCells(SpreadsheetApp.Dimension.ROWS) // Insert cells if edited cell is not blank
